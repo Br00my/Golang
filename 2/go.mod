@@ -1,4 +1,4 @@
-module greenlight.alexedwards.net
+module greenworld.wow
 
 go 1.21.1
 
