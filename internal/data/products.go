@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"time"
 	"errors"
 	"database/sql"
@@ -130,12 +131,12 @@ func (m ProductModel) Delete(id int64) error {
 }
 
 func (m ProductModel) GetAll(title string, category string, filters Filters) ([]*Product, error) {
-	query := `
+	query := fmt.Sprintf(`
 		SELECT id, created_at, title, category, price
 		FROM products
 		WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '') and
 		(to_tsvector('simple', category) @@ plainto_tsquery('simple', $2) OR $2 = '')
-		ORDER BY id`
+		ORDER BY %s %s, id ASC`, filters.sortColumn(), filters.sortDirection())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
