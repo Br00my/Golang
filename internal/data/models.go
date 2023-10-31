@@ -15,7 +15,7 @@ type Models struct {
 		Get(id int64) (*Product, error)
 		Update(product *Product) error
 		Delete(id int64) error
-		GetAll(title string, category string, filters Filters) ([]*Product, error)
+		GetAll(title string, category string, filters Filters) ([]*Product, Metadata, error)
 	}
 }
 

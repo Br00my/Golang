@@ -27,8 +27,8 @@ func (m MockProductModel) Update(Product *Product) error {
 func (m MockProductModel) Delete(id int64) error {
 	return nil
 }
-func (m MockProductModel) GetAll(title string, category string, filters Filters) ([]*Product, error) {
-	return nil, nil
+func (m MockProductModel) GetAll(title string, category string, filters Filters) ([]*Product, Metadata, error) {
+	return nil, Metadata{}, nil
 }
 
 type Product struct {
@@ -130,9 +130,9 @@ func (m ProductModel) Delete(id int64) error {
 	return nil
 }
 
-func (m ProductModel) GetAll(title string, category string, filters Filters) ([]*Product, error) {
+func (m ProductModel) GetAll(title string, category string, filters Filters) ([]*Product, Metadata, error) {
 	query := fmt.Sprintf(`
-		SELECT id, created_at, title, category, price
+		SELECT count(*) over(), id, created_at, title, category, price
 		FROM products
 		WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '') and
 		(to_tsvector('simple', category) @@ plainto_tsquery('simple', $2) OR $2 = '')
@@ -146,11 +146,12 @@ func (m ProductModel) GetAll(title string, category string, filters Filters) ([]
 
 	rows, err := m.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, Metadata{}, err
 	}
 
 	defer rows.Close()
 
+	totalRecords := 0
 	products := []*Product{}
 
 	for rows.Next() {
@@ -158,6 +159,7 @@ func (m ProductModel) GetAll(title string, category string, filters Filters) ([]
 		var product Product
 
 		err := rows.Scan(
+			&totalRecords,
 			&product.ID,
 			&product.CreatedAt,
 			&product.Title,
@@ -165,15 +167,17 @@ func (m ProductModel) GetAll(title string, category string, filters Filters) ([]
 			&product.Price,
 		)
 		if err != nil {
-			return nil, err
+			return nil, Metadata{}, err
 		}
 
 		products = append(products, &product)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil, Metadata{}, err
 	}
 
-	return products, nil
+	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
+
+	return products, metadata, nil
 }
