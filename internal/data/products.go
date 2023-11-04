@@ -14,23 +14,6 @@ type ProductModel struct {
 	DB *sql.DB
 }
 
-type MockProductModel struct{}
-func (m MockProductModel) Insert(Product *Product) error {
-	return nil
-}
-func (m MockProductModel) Get(id int64) (*Product, error) {
-	return nil, nil
-}
-func (m MockProductModel) Update(Product *Product) error {
-	return nil
-}
-func (m MockProductModel) Delete(id int64) error {
-	return nil
-}
-func (m MockProductModel) GetAll(title string, category string, filters Filters) ([]*Product, Metadata, error) {
-	return nil, Metadata{}, nil
-}
-
 type Product struct {
 	ID int64 `json:"id"`
 	CreatedAt time.Time `json:"-"`

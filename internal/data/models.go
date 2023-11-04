@@ -10,23 +10,17 @@ var (
 )
 
 type Models struct {
-	Products interface {
-		Insert(product *Product) error
-		Get(id int64) (*Product, error)
-		Update(product *Product) error
-		Delete(id int64) error
-		GetAll(title string, category string, filters Filters) ([]*Product, Metadata, error)
-	}
+	Products ProductModel
+	Permissions PermissionModel
+	Tokens TokenModel
+	Users UserModel
 }
 
 func NewModels(db *sql.DB) Models {
 	return Models{
 		Products: ProductModel{DB: db},
-	}
-}
-
-func NewMockModels() Models {
-	return Models{
-		Products: MockProductModel{},
+		Permissions: PermissionModel{DB: db},
+		Tokens: TokenModel{DB: db},
+		Users: UserModel{DB: db},
 	}
 }
